@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Router Console | Network Automation Activity</title>
+  <link rel="stylesheet" href="{{ url_for('templates_file', filename='styles.css') }}">
+</head>
+<body class="{% if error %}state-failed{% elif results %}state-complete{% else %}state-ready{% endif %}">
+  <div class="pt-shell">
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-badge" aria-hidden="true">PT</span>
+        <span>Network Automation Activity</span>
+      </div>
+      <div class="titlebar-meta">
+        <span>EVE-NG Lab Workspace</span>
+        <span class="mode-pill">LOCAL LAB</span>
+      </div>
+    </header>
+
+    <aside class="rail" aria-label="Workspace tools">
+      <div>
+        <div class="group-label">Workspace</div>
+        <div class="tool-item" aria-current="page">
+          <span class="tool-icon" aria-hidden="true">&gt;_</span>
+          <span>Router Console</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-label">Topology Node</div>
+        <div class="device-tree">
+          <div class="device-tree-row">
+            <span>Device</span>
+            <strong>EVE Lab Router</strong>
+          </div>
+          <div class="device-tree-row">
+            <span>Platform</span>
+            <span>Cisco IOS</span>
+          </div>
+          <div class="device-tree-row">
+            <span>Transport</span>
+            <span>Telnet :32770</span>
+          </div>
+          <div class="link-pulse" aria-hidden="true">
+            <span class="link-dot"></span>
+            <span class="link-line"><span class="link-packet"></span></span>
+            <span class="link-dot"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rail-footer">
+        <strong>Read-Only Inspection</strong>
+        <p>Executes non-destructive show commands and closes the session cleanly.</p>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <span>Workspace</span>
+        <span aria-hidden="true">/</span>
+        <span>Router Console</span>
+      </nav>
+
+      <section class="page-header" aria-labelledby="page-title">
+        <h1 id="page-title">Router Console</h1>
+        <p>Connect to your lab router to inspect IOS version details, interface status, and running configuration.</p>
+      </section>
+
+      <section class="inspector-card" aria-labelledby="router-title">
+        <div>
+          <div class="inspector-top">
+            <h2 id="router-title">EVE Lab Router</h2>
+            {% if error %}
+              <span class="status-badge failed">Connection failed</span>
+            {% elif results %}
+              <span class="status-badge success">Checks complete</span>
+            {% else %}
+              <span class="status-badge">Ready to connect</span>
+            {% endif %}
+          </div>
+          <p class="inspector-desc">
+            {% if results %}
+              Command output collected. The Telnet session closed after execution.
+            {% elif error %}
+              Unable to reach the router. Verify that the EVE-NG node is powered on and reachable.
+            {% else %}
+              Run a single read-only session to gather configured router diagnostics.
+            {% endif %}
+          </p>
+          <div class="specs-grid">
+            <div class="spec"><span>Management IP</span><code>192.168.10.25</code></div>
+            <div class="spec"><span>Telnet Port</span><code>32770</code></div>
+            <div class="spec"><span>OS Driver</span><code>Cisco IOS</code></div>
+          </div>
+        </div>
+
+        <form id="check-form" action="{{ url_for('connect') }}" method="post">
+          <button id="run-btn" class="run-btn" type="submit">
+            <span class="btn-icon" aria-hidden="true">&#9654;</span>
+            <span class="btn-label">Run Router Checks</span>
+          </button>
+        </form>
+      </section>
+
+      <section aria-labelledby="output-title">
+        <div class="section-bar">
+          <div>
+            <h2 id="output-title">CLI Command Output</h2>
+            <p id="output-subtitle">Output returned from the most recent check run</p>
+          </div>
+          {% if results %}
+            <span class="session-tag">Session closed normally</span>
+          {% endif %}
+        </div>
+
+        {% if error %}
+          <div class="alert-box" role="alert">{{ error }}</div>
+        {% endif %}
+
+{% if results %}
+  <div class="cli-list">
+    {% for command, output in results.items() %}
+      <article class="cli-card" style="--stagger: {{ loop.index0 }};">
+        <div class="cli-header">
+          <div class="cli-cmd">
+            <span class="cli-prompt" aria-hidden="true">Router#</span>
+            <code>{{ command }}</code>
+          </div>
+          <div class="cli-actions">
+            <button
+              class="theme-btn"
+              type="button"
+              aria-pressed="false"
+              title="Toggle light/night mode for this output"
+            >
+              Light Mode
+            </button>
+            <button class="copy-btn" type="button" data-copy-target="cli-out-{{ loop.index0 }}">
+              Copy
+            </button>
+          </div>
+        </div>
+        <pre id="cli-out-{{ loop.index0 }}" class="cli-output">{{ output }}</pre>
+      </article>
+    {% endfor %}
+  </div>
+        {% endif %}
+      </section>
+
+      <footer>Network Automation Activity &middot; EVE-NG Lab Console</footer>
+    </main>
+  </div>
+
+  <script src="{{ url_for('templates_file', filename='console.js') }}" defer></script>
+</html>
